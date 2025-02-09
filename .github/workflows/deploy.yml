@@ -46,8 +46,15 @@ jobs:
 
     - name: Deploy to AWS
       run: |
-        # Add your deployment commands here
-        # For example, using AWS CLI to deploy to Elastic Beanstalk
-        aws s3 cp bin/Release/net8.0/encriptionapi.dll s3://encryptionabdalla/
+        # Build the project
+        dotnet build -c Release
+        # Publish the project
+        dotnet publish -c Release -o bin/Release/net8.0/publish
+        # Verify the output
+        ls -l bin/Release/net8.0/publish
+        # Copy the DLL to S3
+        aws s3 cp bin/Release/net8.0/publish/encriptionapi.dll s3://encryptionabdalla/
+        # Create Elastic Beanstalk application version
         aws elasticbeanstalk create-application-version --application-name  EBS-Abdullahi--version-label $GITHUB_SHA --source-bundle S3Bucket="encryptionabdalla",S3Key="encriptionapi.dll"
+        # Update Elastic Beanstalk environment
         aws elasticbeanstalk update-environment --environment-name  EBS-Abdullahi-env --version-label $GITHUB_SHA
