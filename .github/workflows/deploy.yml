@@ -1,6 +1,6 @@
 name: CI
 
-on: 
+on:   
   push:
     branches:
       - master
@@ -26,7 +26,7 @@ jobs:
       run: msbuild encriptionapi.sln /p:Configuration=Release
 
     - name: Run tests
-      run: vstest.console.exe bin\Release\net8.0\encriptionapi.dll
+      run: dotnet test.console.exe bin\Release\net8.0\encriptionapi.dll
 
   deploy:
     needs: build
