@@ -53,8 +53,14 @@ jobs:
         # Verify the output
         ls -l bin/Release/net8.0/publish
         # Copy the DLL to S3
-        aws s3 cp bin/Release/net8.0/publish/encriptionapi.dll s3://encryptionabdalla/
+        aws s3 cp bin/Release/net8.0/publish/encriptionapi.dll s3://elasticbeanstalk-us-east-1-180294209286/
         # Create Elastic Beanstalk application version
-        aws elasticbeanstalk create-application-version --application-name  EBS-Abdullahi--version-label $GITHUB_SHA --source-bundle S3Bucket="encryptionabdalla",S3Key="encriptionapi.dll"
+        # Create Elastic Beanstalk application version
+        aws elasticbeanstalk create-application-version \
+        --application-name EBS-Abdullahi \
+        --version-label "Inlamningsuppgift-version-1"\
+        --source-bundle S3Bucket="encryptionabdalla",S3Key="EncryptionApi.zip"
         # Update Elastic Beanstalk environment
-        aws elasticbeanstalk update-environment --environment-name  EBS-Abdullahi-env --version-label $GITHUB_SHA
+        aws elasticbeanstalk update-environment \
+        --environment-name EBS-Abdullahi-env \
+        --version-label  "Inlamningsuppgift-version-1"
