@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up MSBuild
+      uses: microsoft/setup-msbuild@v1
+
+    - name: Restore NuGet packages
+      run: nuget restore encriptionapi.sln
+
+    - name: Build the solution
+      run: msbuild encriptionapi.sln /p:Configuration=Release
+
+    - name: Run tests
+      run: vstest.console.exe bin\Release\net8.0\encriptionapi.dll
