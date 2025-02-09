@@ -26,7 +26,8 @@ jobs:
       run: msbuild encriptionapi.sln /p:Configuration=Release
 
     - name: Run tests
-      run: dotnet test bin\Release\net8.0\encriptionapi.dll || echo "tests failed, but continuing..."
+      run: dotnet test bin\Release\net8.0\encriptionapi.dll 
+      continue-on-error: true
 
   deploy:
     needs: build
