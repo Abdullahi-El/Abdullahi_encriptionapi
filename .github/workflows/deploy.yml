@@ -59,7 +59,7 @@ jobs:
         aws s3 cp EncryptionApi.zip s3://elasticbeanstalk-us-east-1-180294209286/
         aws elasticbeanstalk create-application-version \
         --application-name EBS-Abdullahi \
-        --version-label ${{ github.sha }} \
+        --version-label 2025-02-10-v1 \
         --source-bundle S3Bucket="elasticbeanstalk-us-east-1-180294209286",S3Key="EncryptionApi.zip" || exit 1
         aws elasticbeanstalk update-environment \
         --environment-name EBS-Abdullahi-env \
