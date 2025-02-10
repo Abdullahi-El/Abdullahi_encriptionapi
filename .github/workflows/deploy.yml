@@ -47,6 +47,7 @@ jobs:
         aws-region: ${{ secrets.AWS_REGION }}
 
     - name: Deploy to AWS
+      if: contains(github.event.head_commit.message, 'deploy')
       run: |
         # Build the project
         dotnet build -c Release
@@ -59,7 +60,7 @@ jobs:
         # Create Elastic Beanstalk application version
         aws elasticbeanstalk create-application-version \
         --application-name EBS-Abdullahi \
-        --version-label Abdullahi_Elmi-v2 \
+        --version-label Abdullahi_Elmi-v3 \
         --source-bundle S3Bucket="elasticbeanstalk-us-east-1-180294209286",S3Key="1737315609566-Abdullahi_Elmi.zip"
         # Update Elastic Beanstalk environment
         aws elasticbeanstalk update-environment \
