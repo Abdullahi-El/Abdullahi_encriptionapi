@@ -29,9 +29,7 @@ jobs:
     #  run: dotnet test bin\Release\net8.0\encriptionapi.dll 
       #continue-on-error: true
     - name: Run tests
-      run: dotnet test ./encriptionapi/encriptionapi.csproj
-
-
+      run: dotnet test C:/Users/abdal/OneDrive/Desktop/encryption_abdalla/encriptionapi/encriptionapi.csproj
   deploy:
     needs: build
     runs-on: ubuntu-latest
