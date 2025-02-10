@@ -25,9 +25,7 @@ jobs:
     - name: Build the solution
       run: msbuild encriptionapi.sln /p:Configuration=Release
 
-    #- name: Run tests
-    #  run: dotnet test bin\Release\net8.0\encriptionapi.dll 
-      #continue-on-error: true
+    
     - name: Run tests
       run: dotnet test ./encriptionapi.csproj --configuration Release --logger "trx;LogFileName=test-results.trx"
 
