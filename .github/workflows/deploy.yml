@@ -29,7 +29,7 @@ jobs:
     #  run: dotnet test bin\Release\net8.0\encriptionapi.dll 
       #continue-on-error: true
     - name: Run tests
-      run: dotnet test path/to/your/project/EncriptionApi.csproj
+      run: dotnet test ./encriptionapi/encriptionapi.csproj
 
 
   deploy:
