@@ -3,50 +3,56 @@ using EncryptionAPI.Services;
 
 namespace EncryptionAPI.Controllers
 {
-    [ApiController] // Anger att detta är en API-controller
-    [Route("api/[controller]")] // Definierar basrouten för controlleren
+    [Route("api/[controller]")]
+    [ApiController]
     public class EncryptionController : ControllerBase
     {
-        private readonly EncryptionService _encryptionService;
+        private readonly Encryptionspi _encryptionService; // Correct the service name
 
-        // Konstruktor som tar emot EncryptionService via dependency injection
-        public EncryptionController(EncryptionService encryptionService)
+        // Constructor for dependency injection of Encryptionspi
+        public EncryptionController(Encryptionspi encryptionService)
         {
-            _encryptionService = encryptionService;
+            _encryptionService = encryptionService; // Initialize the service
         }
 
-        // Endpoint för att kryptera text
-        [HttpPost("encrypt")] // POST /api/encryption/encrypt
-        public IActionResult Encrypt([FromBody] string plainText)
+        // POST endpoint for encrypting text
+        [HttpPost("encrypt")]
+        public ActionResult<string> Encrypt([FromBody] string plainText)
         {
-            // Validera inmatning
+            var encryptedText = _encryptionService.Encrypt(plainText); // Use Encrypt method from Encryptionspi
+            return Ok(encryptedText); // Return the encrypted text
+        }
+
+        // POST endpoint for decrypting text
+        [HttpPost("decrypt")]
+        public ActionResult<string> Decrypt([FromBody] string cipherText)
+        {
+            var decryptedText = _encryptionService.Decrypt(cipherText); // Use Decrypt method from Encryptionspi
+            return Ok(decryptedText); // Return the decrypted text
+        }
+
+        // GET endpoint for encrypting text (alternative to POST)
+        [HttpGet("encrypt")]
+        public ActionResult<string> GetEncrypt([FromQuery] string plainText)
+        {
             if (string.IsNullOrEmpty(plainText))
             {
-                return BadRequest("Input text cannot be empty.");
+                return BadRequest("Plain text is required.");
             }
-
-            // Anropa krypteringsmetoden från EncryptionService
-            var encryptedText = _encryptionService.Encrypt(plainText);
-
-            // Returnera det krypterade resultatet
-            return Ok(encryptedText);
+            var encryptedText = _encryptionService.Encrypt(plainText); // Use Encrypt method from Encryptionspi
+            return Ok(encryptedText); // Return the encrypted text
         }
 
-        // Endpoint för att dekryptera text
-        [HttpPost("decrypt")] // POST /api/encryption/decrypt
-        public IActionResult Decrypt([FromBody] string encryptedText)
+        // GET endpoint for decrypting text (alternative to POST)
+        [HttpGet("decrypt")]
+        public ActionResult<string> GetDecrypt([FromQuery] string cipherText)
         {
-            // Validera inmatning
-            if (string.IsNullOrEmpty(encryptedText))
+            if (string.IsNullOrEmpty(cipherText))
             {
-                return BadRequest("Encrypted text cannot be empty.");
+                return BadRequest("Cipher text is required.");
             }
-
-            // Anropa dekrypteringsmetoden från EncryptionService
-            var plainText = _encryptionService.Decrypt(encryptedText);
-
-            // Returnera det dekrypterade resultatet
-            return Ok(plainText);
+            var decryptedText = _encryptionService.Decrypt(cipherText); // Use Decrypt method from Encryptionspi
+            return Ok(decryptedText); // Return the decrypted text
         }
     }
 }
