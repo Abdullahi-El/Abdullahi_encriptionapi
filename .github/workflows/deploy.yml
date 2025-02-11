@@ -35,12 +35,7 @@ jobs:
           dotnet publish ./encriptionapi.csproj -c Release -o ./publish
           ls -l ./publish  # Verify the .runtimeconfig.json file is present
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: build-artifacts
-          path: ./publish
-
+    
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -48,12 +43,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: build-artifacts
-          path: ./publish
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
