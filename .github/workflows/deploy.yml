@@ -28,11 +28,11 @@ jobs:
       - name: Run tests
         run: dotnet test ./encriptionapi.csproj --configuration Release --logger "trx;LogFileName=test-results.trx"
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: build-artifacts
-          path: bin/Release/net8.0/publish/
+   #   - name: Upload build artifacts
+    #    uses: actions/upload-artifact@v3
+   #     with:
+    #      name: build-artifacts
+    #      path: bin/Release/net8.0/publish/
 
   deploy:
     needs: build
