@@ -1,10 +1,10 @@
 name: CI
 
-on:   
-  push: 
+on:
+  push:
     branches:
       - master
-  pull_request: 
+  pull_request:
     branches:
       - master
 
@@ -13,55 +13,67 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up MSBuild
-      uses: microsoft/setup-msbuild@v1
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v1
 
-    - name: Restore NuGet packages
-      run: nuget restore encriptionapi.sln
+      - name: Restore NuGet packages
+        run: nuget restore encriptionapi.sln
 
-    - name: Build the solution
-      run: msbuild encriptionapi.sln /p:Configuration=Release
+      - name: Build the solution
+        run: msbuild encriptionapi.sln /p:Configuration=Release
 
-    
-    - name: Run tests
-      run: dotnet test ./encriptionapi.csproj --configuration Release --logger "trx;LogFileName=test-results.trx"
+      - name: Run tests
+        run: dotnet test ./encriptionapi.csproj --configuration Release --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: bin/Release/net8.0/publish/
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts
+          path: bin/Release/net8.0/publish/
 
-    - name: Deploy to AWS
-      if: contains(github.event.head_commit.message, 'deploy')
-      run: |
-        # Build the project
-        dotnet build -c Release
-        # Publish the project
-        dotnet publish -c Release -o bin/Release/net8.0/publish
-        # Verify the output
-        ls -l bin/Release/net8.0/publish
-        # Skapa en zip-fil från den publicerade applikationen
-        zip -r EncryptionApi.zip bin/Release/net8.0/publish/
-        # Ladda upp zip-filen till S3
-        aws s3 cp EncryptionApi.zip s3://elasticbeanstalk-us-east-1-180294209286/
-        aws elasticbeanstalk create-application-version \
-        --application-name EBS-Abdullahi \
-        --version-label 2025-02-10-v1 \
-        --source-bundle S3Bucket="elasticbeanstalk-us-east-1-180294209286",S3Key="EncryptionApi.zip" || exit 1
-        aws elasticbeanstalk update-environment \
-        --environment-name EBS-Abdullahi-env \
-        --version-label ${{ github.sha }} || exit 1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Deploy to AWS
+        if: contains(github.event.head_commit.message, 'deploy')
+        run: |
+          set -e  # Exit on any error
+
+          # Create a zip file from the published application
+          zip -r EncryptionApi.zip bin/Release/net8.0/publish/
+
+          # Upload the zip file to S3
+          aws s3 cp EncryptionApi.zip s3://elasticbeanstalk-us-east-1-180294209286/
+
+          # Create a new application version
+          VERSION_LABEL=${{ github.sha }}  # Use commit SHA as version label
+          aws elasticbeanstalk create-application-version \
+            --application-name EBS-Abdullahi \
+            --version-label $VERSION_LABEL \
+            --source-bundle S3Bucket="elasticbeanstalk-us-east-1-180294209286",S3Key="EncryptionApi.zip"
+
+          # Update the environment to use the new version
+          aws elasticbeanstalk update-environment \
+            --environment-name EBS-Abdullahi-env \
+            --version-label $VERSION_LABEL
