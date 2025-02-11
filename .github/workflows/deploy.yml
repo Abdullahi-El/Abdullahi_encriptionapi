@@ -58,14 +58,16 @@ jobs:
       - name: Deploy to AWS
         if: contains(github.event.head_commit.message, 'deploy')
         run: |
-          set -e  # Exit on any error
-
-          # Create a zip file from the published application
-          zip -r EncryptionApi.zip bin/Release/net8.0/publish/
-
-          # Upload the zip file to S3
-          aws s3 cp EncryptionApi.zip s3://elasticbeanstalk-us-east-1-180294209286/
-
+         # Build the project
+         dotnet build -c Release
+         # Publish the project
+         dotnet publish -c Release -o bin/Release/net8.0/publish
+         # Verify the output
+         ls -l bin/Release/net8.0/publish
+         # Skapa en zip-fil från den publicerade applikationen
+         zip -r EncryptionApi.zip bin/Release/net8.0/publish/
+         # Ladda upp zip-filen till S3
+         aws s3 cp EncryptionApi.zip s3://elasticbeanstalk-us-east-1-180294209286/
           # Create a new application version
           VERSION_LABEL=${{ github.sha }}  # Use commit SHA as version label
           aws elasticbeanstalk create-application-version \
