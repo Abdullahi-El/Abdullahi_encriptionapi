@@ -16,23 +16,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up MSBuild
-        uses: microsoft/setup-msbuild@v1
+      - name: Set up .NET 9
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 9.0.x
 
       - name: Restore NuGet packages
-        run: nuget restore encriptionapi.sln
+        run: dotnet restore encriptionapi.sln
 
       - name: Build the solution
-        run: msbuild encriptionapi.sln /p:Configuration=Release
+        run: dotnet build encriptionapi.sln -c Release
 
       - name: Run tests
         run: dotnet test ./encriptionapi.csproj --configuration Release --logger "trx;LogFileName=test-results.trx"
 
-   #   - name: Upload build artifacts
-    #    uses: actions/upload-artifact@v3
-   #     with:
-    #      name: build-artifacts
-    #      path: bin/Release/net8.0/publish/
+      - name: Publish the project
+        run: |
+          dotnet publish ./encriptionapi.csproj -c Release -o ./publish
+          ls -l ./publish  # Verify the .runtimeconfig.json file is present
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: ./publish
 
   deploy:
     needs: build
@@ -42,11 +49,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-     # - name: Download build artifacts
-     #   uses: actions/download-artifact@v3
-     #   with:
-     #     name: build-artifacts
-      #    path: bin/Release/net8.0/publish/
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts
+          path: ./publish
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -58,16 +65,13 @@ jobs:
       - name: Deploy to AWS
         if: contains(github.event.head_commit.message, 'deploy')
         run: |
-         # Build the project
-         dotnet build -c Release
-         # Publish the project
-         dotnet publish -c Release -o bin/Release/net8.0/publish
-         # Verify the output
-         ls -l bin/Release/net8.0/publish
-         # Skapa en zip-fil från den publicerade applikationen
-         zip -r EncryptionApi.zip bin/Release/net8.0/publish/
-         # Ladda upp zip-filen till S3
-         aws s3 cp EncryptionApi.zip s3://elasticbeanstalk-us-east-1-180294209286/
+          # Create a ZIP file from the published application
+          cd ./publish
+          zip -r EncryptionApi.zip .
+
+          # Upload the ZIP file to S3
+          aws s3 cp EncryptionApi.zip s3://elasticbeanstalk-us-east-1-180294209286/
+
           # Create a new application version
           VERSION_LABEL=${{ github.sha }}  # Use commit SHA as version label
           aws elasticbeanstalk create-application-version \
