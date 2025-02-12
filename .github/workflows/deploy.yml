@@ -52,7 +52,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Deploy to AWS
-        if: contains(github.event.head_commit.message, 'deploy')
+     #   if: contains(github.event.head_commit.message, 'deploy')
         run: |
           # Create a ZIP file from the published application
          
