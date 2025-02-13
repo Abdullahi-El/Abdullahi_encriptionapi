@@ -57,17 +57,31 @@ jobs:
           # Upload the ZIP file to S3
           aws s3 cp EncryptionApi.zip s3://deploybucket-log/
 
-          # Create a new application version
+          # Generate a unique version label
           VERSION_LABEL=$(echo "${{ github.sha }}" | cut -c1-100)
-          aws elasticbeanstalk create-application-version \
+
+          # Check if version already exists
+          VERSION_EXISTS=$(aws elasticbeanstalk describe-application-versions \
             --application-name Appdeploy \
-            --version-label $VERSION_LABEL \
-            --source-bundle S3Bucket="deploybucket-log",S3Key="EncryptionApi.zip"
+            --version-labels $VERSION_LABEL \
+            --query 'ApplicationVersions[0].VersionLabel' \
+            --output text)
+
+          # If the version already exists, skip creation (or update it)
+          if [ "$VERSION_EXISTS" == "$VERSION_LABEL" ]; then
+            echo "Version $VERSION_LABEL already exists. Skipping creation of new version."
+          else
+            # Create a new application version
+            aws elasticbeanstalk create-application-version \
+              --application-name Appdeploy \
+              --version-label $VERSION_LABEL \
+              --source-bundle S3Bucket="deploybucket-log",S3Key="EncryptionApi.zip"
+          fi
 
           # Debug AWS CLI commands
           aws elasticbeanstalk describe-application-versions --application-name Appdeploy --version-labels $VERSION_LABEL
 
-          # Update the environment to use the new version
+          # Update the environment to use the new or existing version
           aws elasticbeanstalk update-environment \
             --environment-name Appdeploy-env \
             --version-label $VERSION_LABEL
