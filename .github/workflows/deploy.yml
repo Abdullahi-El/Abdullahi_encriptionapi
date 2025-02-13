@@ -9,8 +9,8 @@ on:
       - master
 
 jobs:
-  build:
-    runs-on: windows-latest
+  build-and-deploy:
+    runs-on: ubuntu-latest  # Use a single runner for both build and deploy
 
     steps:
       - name: Checkout code
@@ -34,14 +34,6 @@ jobs:
         run: |
           dotnet publish ./encriptionapi.csproj -c Release -o ./publish
           ls -l ./publish  # Verify the .runtimeconfig.json file is present
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
