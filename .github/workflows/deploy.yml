@@ -35,7 +35,6 @@ jobs:
           dotnet publish ./encriptionapi.csproj -c Release -o ./publish
           ls -l ./publish  # Verify the .runtimeconfig.json file is present
 
-    
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -52,23 +51,21 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Deploy to AWS
-     #   if: contains(github.event.head_commit.message, 'deploy')
         run: |
           # Create a ZIP file from the published application
-         
-          zip -r EncryptionApi.zip . 
+          zip -r EncryptionApi.zip ./publish/*
 
           # Upload the ZIP file to S3
-          aws s3 cp EncryptionApi.zip s3://elasticbeanstalk-us-east-1-180294209286/
+          aws s3 cp EncryptionApi.zip s3://deploybucket-log/
 
           # Create a new application version
           VERSION_LABEL=${{ github.sha }}  # Use commit SHA as version label
           aws elasticbeanstalk create-application-version \
-            --application-name EBS-Abdullahi \
+            --application-name Appdeploy \
             --version-label $VERSION_LABEL \
-            --source-bundle S3Bucket="elasticbeanstalk-us-east-1-180294209286",S3Key="EncryptionApi.zip"
+            --source-bundle S3Bucket="deploybucket-log",S3Key="EncryptionApi.zip"
 
           # Update the environment to use the new version
           aws elasticbeanstalk update-environment \
-            --environment-name EBS-Abdullahi-env \
+            --environment-name Appdeploy-env \
             --version-label $VERSION_LABEL
